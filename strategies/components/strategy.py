@@ -232,14 +232,15 @@ class AffordableTopkDropoutStrategy(TopkDropoutStrategy):
         needed_count = self.topk - len(holding_stocks)
 
         # 动态计算当前可用资金使用率 (Risk Degree)
-        if self.market_timing_mode == "strict" and not is_bull_market:
-            effective_risk = 0.0
-        elif self.market_timing_mode == "dynamic" and not is_bull_market:
-            effective_risk = self.risk_degree * 0.50   # 熊市防守期：允许以 50% 半仓精选逆势独立强股
+        if self.market_timing_mode in ("strict", "empty_position_timing") and not is_bull_market:
+            effective_risk = 0.0                       # 严格空仓防守：大盘破位时 100% 空仓，一股不买
+        elif self.market_timing_mode in ("dynamic", "half_position_timing") and not is_bull_market:
+            effective_risk = self.risk_degree * 0.50   # 半仓动态防守：大盘破位时降至 50% 半仓，仅参与个股独立行情
         elif is_account_defense:
             effective_risk = self.risk_degree * 0.70   # 账户高水位回撤防守期：降至 70% 仓位
         else:
-            effective_risk = self.risk_degree          # 正常多头期：95% 全仓进攻
+            effective_risk = self.risk_degree          # 正常多头期或 off 模式：全仓进攻 (如 95%)
+
 
         if needed_count > 0 and cash > 0 and effective_risk > 0:
             budget_per_stock = (cash * effective_risk) / needed_count
