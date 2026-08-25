@@ -152,17 +152,17 @@ cd /root/autodl-tmp/qlib/strategies
 ### 3. 执行实验命令
 
 ```bash
-# 查看所有可用实验及其当前完成状态
-python run_model_experiments.py --list
+# 查看所有可用策略及其当前完成状态
+python run_experiments.py --list
 
-# 运行全部对照实验 (A ~ F 组)
-python run_model_experiments.py
+# 运行全部策略
+python run_experiments.py
 
-# 或者仅运行指定实验组 (例如仅跑 A 组和 B 组)
-python run_model_experiments.py exp_a_baseline exp_b_label5d
+# 或者仅运行指定策略 (例如运行 double_ensemble 或 baseline)
+python run_experiments.py double_ensemble baseline
 
 # 仅从已有 metrics.json 重新汇编对比报告 (无需重新跑训练)
-python run_model_experiments.py --report_only
+python run_experiments.py --report_only
 ```
 
 ### 4. 退出 / 挂起 tmux 界面
@@ -220,8 +220,9 @@ export QLIB_OUTPUT_DIR=/root/autodl-tmp/outputs
 ```
 或者在运行脚本时指定参数：
 ```bash
-python run_model_experiments.py -o /root/autodl-tmp/outputs
+python run_experiments.py -o /root/autodl-tmp/outputs
 ```
+
 
 ### Q3: 为什么训练首次很慢，后续很快？
 - **首次运行**：会自动计算 2008 年至今 17 年的 Alpha158 因子工程并缓存至 `outputs/cache/`。

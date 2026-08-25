@@ -21,8 +21,7 @@
 ```text
 strategies/
 ├── README.md                   # 📖 本使用说明文档
-├── run_experiments.py          # 🌟【通用执行引擎】(CLI 启动入口)
-├── run_model_experiments.py    # 兼容入口 (转发至 run_experiments.py)
+├── run_experiments.py          # 🌟【唯一通用执行引擎】(CLI 启动入口)
 ├── configs/                    # 🎛️【策略配置中心】(一个策略 = 一个独立 YAML)
 │   ├── baseline.yaml           # 1. 基线策略 (1日标签 + 17年 LightGBM + 完整风控)
 │   ├── double_ensemble.yaml    # 2. 双重集成策略 (5日标签 + DoubleEnsemble + 完整风控)
