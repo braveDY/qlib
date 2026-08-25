@@ -22,11 +22,8 @@ from .paths import (
 )
 
 from .config_loader import (
-    load_experiment_config,
-    load_suite_configs,
-    discover_all_configs,
-    get_base_config,
-    deep_merge_dicts,
+    load_strategy_config,
+    list_all_strategy_configs,
 )
 
 __all__ = [
@@ -46,11 +43,9 @@ __all__ = [
     "load_experiment_metrics",
     "list_all_experiments",
     "ExperimentPaths",
-    "load_experiment_config",
-    "load_suite_configs",
-    "discover_all_configs",
-    "get_base_config",
-    "deep_merge_dicts",
+    "load_strategy_config",
+    "list_all_strategy_configs",
 ]
+
 
 

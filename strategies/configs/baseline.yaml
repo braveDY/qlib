@@ -1,0 +1,60 @@
+# ======================================================================================
+# 🌟 基线策略 (Baseline Strategy)
+# 特点: 1日标签 + 17年长历史训练 + LightGBM + 自适应购买力Top1选股 + 完整多维风控
+# ======================================================================================
+
+key: "baseline"
+title: "基线策略 (1日标签 + 17年训练 + 完整风控)"
+description: "预测未来1日收益，使用2008~2024年17年数据训练LightGBM，带大盘MA20择时与移动止盈止损"
+
+# 1. 股票池与时间切片
+market: "csi500"
+benchmark: "SH000905"
+benchmark_ma: 20
+label_horizon: 1
+train_start: "2008-01-01"
+train_end: "2024-12-31"
+valid_start: "2025-01-01"
+valid_end: "2025-06-30"
+test_start: "2025-07-01"
+test_end: "2026-08-24"
+
+# 2. 资金与交易规则
+account_cash: 20000.0
+topk_stocks: 1
+n_drop_stocks: 1
+trade_unit: 100
+risk_degree: 0.95
+open_cost: 0.0001
+close_cost: 0.0001
+min_cost: 5.0
+deal_price: "close"
+limit_threshold: 0.095
+
+# 3. 选股与多维风控
+stock_uptrend_filter: true        # 只买主升浪 (Close > MA5 & Close > MA20)
+drop_rank_threshold: 30           # 跌出前30名强制淘汰
+stop_loss_rate: 0.035             # -3.5% 固定硬止损
+trailing_stop_trigger: 0.05       # 浮盈 +5% 启动跟踪止盈
+trailing_stop_rate: 0.025         # 从最高点回撤 2.5% 锁定利润
+max_holding_days: 10              # 最多持有10天强制调仓
+market_timing_mode: "half_position_timing" # 大盘 < MA20 自动减半仓
+account_drawdown_limit: 0.08
+
+# 4. 模型配置 (LightGBM)
+model:
+  class: "LGBModel"
+  module_path: "qlib.contrib.model.gbdt"
+  kwargs:
+    loss: "mse"
+    learning_rate: 0.0421
+    max_depth: 8
+    num_leaves: 210
+    subsample: 0.8789
+    colsample_bytree: 0.8879
+    lambda_l1: 205.6999
+    lambda_l2: 580.9768
+    num_threads: 20
+    seed: 42
+    bagging_seed: 42
+    feature_fraction_seed: 42

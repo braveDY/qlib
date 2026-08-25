@@ -52,9 +52,8 @@ from components import (
     load_experiment_metrics,
     list_all_experiments,
     ExperimentPaths,
-    load_experiment_config,
-    load_suite_configs,
-    discover_all_configs,
+    load_strategy_config,
+    list_all_strategy_configs,
 )
 
 
@@ -361,12 +360,11 @@ def generate_comparison_reports(results: list, exp_paths: ExperimentPaths, repor
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Qlib 通用配置驱动实验执行引擎")
-    parser.add_argument("pos_targets", nargs="*", help="要运行的配置文件路径、专题目录或实验键名")
-    parser.add_argument("-c", "--config", type=str, default=None, help="单个实验 YAML 配置文件路径")
-    parser.add_argument("-s", "--suite", type=str, default=None, help="专题目录路径 (如 configs/models/)")
-    parser.add_argument("-a", "--all", action="store_true", help="自动扫描并运行 configs/ 下的全部实验")
-    parser.add_argument("-l", "--list", action="store_true", help="列出所有专题分类下的实验配置与完成状态")
+    parser = argparse.ArgumentParser(description="Qlib 扁平配置驱动策略实验执行引擎")
+    parser.add_argument("pos_targets", nargs="*", help="要运行的配置文件路径或策略键名 (例如 double_ensemble)")
+    parser.add_argument("-c", "--config", type=str, default=None, help="单个策略 YAML 配置文件路径")
+    parser.add_argument("-a", "--all", action="store_true", help="运行 configs/ 下的全部策略配置")
+    parser.add_argument("-l", "--list", action="store_true", help="列出所有策略配置文件与完成状态")
     parser.add_argument("--report_only", action="store_true", help="仅从已有 metrics.json 重新汇编多实验对比报告")
     parser.add_argument("-o", "--output_dir", type=str, default=None, help="自定义输出根目录")
     return parser.parse_args()
@@ -378,21 +376,18 @@ def main():
 
     # 1. 列表模式
     if args.list:
-        print("\n📋 发现的实验配置文件清单 (按研究专题分类):")
+        print("\n📋 发现的策略配置文件清单 (位于 strategies/configs/):")
         print("=" * 80)
-        categories = discover_all_configs()
-        if not categories:
-            print("⚠️ 未发现任何子专题配置文件。")
+        cfgs = list_all_strategy_configs()
+        if not cfgs:
+            print("⚠️ 未发现任何策略配置文件。")
             return
-        for cat_name, cfgs in categories.items():
-            print(f"\n📂 专题: 【{cat_name.upper()}】 ({len(cfgs)} 个实验)")
-            print("-" * 80)
-            for c in cfgs:
-                k = c.get("key", "unnamed")
-                t = c.get("title", k)
-                metrics = load_experiment_metrics(k, exp_paths)
-                status = f"✅ 已完成 (净收益 {metrics.get('tot_ret', 0):+.2f}% | 回撤 -{metrics.get('max_mdd', 0):.2f}%)" if metrics else "⏳ 未运行"
-                print(f"  • [{k:22s}] {t:<40s} -> {status}")
+        for c in cfgs:
+            k = c.get("key", "unnamed")
+            t = c.get("title", k)
+            metrics = load_experiment_metrics(k, exp_paths)
+            status = f"✅ 已完成 (净收益 {metrics.get('tot_ret', 0):+.2f}% | 回撤 -{metrics.get('max_mdd', 0):.2f}%)" if metrics else "⏳ 未运行"
+            print(f"  • [{k:20s}] {t:<45s} -> {status}")
         print("=" * 80)
         return
 
@@ -410,50 +405,36 @@ def main():
     # 3. 解析待运行的目标配置列表
     configs_to_run = []
     report_suffix = ""
+    all_known_cfgs = {c.get("key"): c for c in list_all_strategy_configs()}
 
     if args.config:
-        configs_to_run.append(load_experiment_config(args.config))
+        configs_to_run.append(load_strategy_config(args.config))
         report_suffix = Path(args.config).stem
-    elif args.suite:
-        s_p = Path(args.suite)
-        configs_to_run.extend(load_suite_configs(s_p))
-        report_suffix = s_p.name
-    elif args.all:
-        for cfgs in discover_all_configs().values():
-            configs_to_run.extend(cfgs)
-        report_suffix = "all"
     elif args.pos_targets:
         for t in args.pos_targets:
             p = Path(t)
             if p.is_file():
-                configs_to_run.append(load_experiment_config(p))
-            elif p.is_dir():
-                configs_to_run.extend(load_suite_configs(p))
+                configs_to_run.append(load_strategy_config(p))
+            elif t in all_known_cfgs:
+                configs_to_run.append(all_known_cfgs[t])
             else:
-                # 尝试在各专题下按 key 搜索
-                found = False
-                for cfgs in discover_all_configs().values():
-                    for c in cfgs:
-                        if c.get("key") == t or Path(c.get("_config_path", "")).stem == t:
-                            configs_to_run.append(c)
-                            found = True
-                            break
-                    if found:
-                        break
-                if not found:
-                    print(f"⚠️ 未找到匹配的实验配置: {t}")
+                # 尝试补上 .yaml 后缀查找
+                cand = Path(__file__).resolve().parent / "configs" / f"{t}.yaml"
+                if cand.exists():
+                    configs_to_run.append(load_strategy_config(cand))
+                else:
+                    print(f"⚠️ 未找到匹配的策略配置: {t}")
     else:
-        # 默认运行全量已发现的实验
-        for cfgs in discover_all_configs().values():
-            configs_to_run.extend(cfgs)
+        # 默认或 --all: 运行全量策略
+        configs_to_run.extend(list_all_strategy_configs())
         report_suffix = "all"
 
     if not configs_to_run:
-        print("❌ 未找到任何待执行的有效实验配置。可通过 --list 查看所有可用配置。")
+        print("❌ 未找到任何待执行的有效策略配置。可通过 --list 查看所有可用配置。")
         return
 
     print("=" * 90)
-    print(f" 🌟 启动配置驱动实验执行引擎 (共 {len(configs_to_run)} 个实验待执行)")
+    print(f" 🌟 启动单文件配置驱动实验引擎 (共 {len(configs_to_run)} 个策略待执行)")
     print(f"    - 输出根目录: {exp_paths.root}")
     print(f"    - 共享缓存目录: {exp_paths.cache_dir}")
     print("=" * 90)
@@ -472,6 +453,7 @@ def main():
     # 6. 生成对比报告
     report_md = generate_comparison_reports(results, exp_paths, report_suffix=report_suffix)
     print("\n" + report_md)
+
 
 
 if __name__ == "__main__":

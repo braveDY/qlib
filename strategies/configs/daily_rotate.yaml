@@ -1,0 +1,47 @@
+# ======================================================================================
+# 🔄 日频满仓轮动策略 (Daily Rotate Strategy)
+# 特点: 1日标签 + 17年训练 + 每天满仓切换最高分Top1 (无大盘择时与止损止盈)
+# ======================================================================================
+
+key: "daily_rotate"
+title: "日频满仓轮动策略 (1日标签 + 17年训练 + 无风控裸跑)"
+description: "剥离所有风控，每天强制切换持仓至当日预测打分最高的第一名股票，用于对比风控的价值"
+
+market: "csi500"
+benchmark: "SH000905"
+benchmark_ma: 20
+label_horizon: 1
+strategy_class: "DayRotateStrategy"
+train_start: "2008-01-01"
+train_end: "2024-12-31"
+valid_start: "2025-01-01"
+valid_end: "2025-06-30"
+test_start: "2025-07-01"
+test_end: "2026-08-24"
+
+account_cash: 20000.0
+topk_stocks: 1
+trade_unit: 100
+risk_degree: 0.95
+open_cost: 0.0001
+close_cost: 0.0001
+min_cost: 5.0
+deal_price: "close"
+limit_threshold: 0.095
+
+model:
+  class: "LGBModel"
+  module_path: "qlib.contrib.model.gbdt"
+  kwargs:
+    loss: "mse"
+    learning_rate: 0.0421
+    max_depth: 8
+    num_leaves: 210
+    subsample: 0.8789
+    colsample_bytree: 0.8879
+    lambda_l1: 205.6999
+    lambda_l2: 580.9768
+    num_threads: 20
+    seed: 42
+    bagging_seed: 42
+    feature_fraction_seed: 42

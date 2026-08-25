@@ -1,0 +1,71 @@
+# ======================================================================================
+# 🏆 双重集成策略 (DoubleEnsemble Strategy)
+# 特点: 5日标签 + 微软DoubleEnsemble(样本重加权+特征选择) + 6子模型动态集成 + 完整风控
+# ======================================================================================
+
+key: "double_ensemble"
+title: "DoubleEnsemble 双重集成策略 (5日标签 + 17年 + 完整风控)"
+description: "微软KDD论文模型：在17年历史数据上迭代训练6个LightGBM子模型，动态去噪与特征筛选"
+
+# 1. 股票池与时间切片
+market: "csi500"
+benchmark: "SH000905"
+benchmark_ma: 20
+label_horizon: 5                  # 5日平滑标签
+train_start: "2008-01-01"
+train_end: "2024-12-31"
+valid_start: "2025-01-01"
+valid_end: "2025-06-30"
+test_start: "2025-07-01"
+test_end: "2026-08-24"
+
+# 2. 资金与交易规则
+account_cash: 20000.0
+topk_stocks: 1
+n_drop_stocks: 1
+trade_unit: 100
+risk_degree: 0.95
+open_cost: 0.0001
+close_cost: 0.0001
+min_cost: 5.0
+deal_price: "close"
+limit_threshold: 0.095
+
+# 3. 选股与多维风控
+stock_uptrend_filter: true
+drop_rank_threshold: 30
+stop_loss_rate: 0.035
+trailing_stop_trigger: 0.05
+trailing_stop_rate: 0.025
+max_holding_days: 10
+market_timing_mode: "half_position_timing"
+account_drawdown_limit: 0.08
+
+# 4. 双重集成模型配置 (DEnsembleModel)
+model:
+  class: "DEnsembleModel"
+  module_path: "qlib.contrib.model.double_ensemble"
+  kwargs:
+    loss: "mse"
+    base_model: "gbm"
+    num_models: 6                # 6 个子模型集成
+    enable_sr: true              # 开启样本重加权 (Sample Reweighting)
+    enable_fs: true              # 开启特征选择 (Feature Selection)
+    alpha1: 1.0
+    alpha2: 1.0
+    decay: 0.5
+    bins_sr: 10
+    bins_fs: 5
+    epochs: 100
+    early_stopping_rounds: 50
+    learning_rate: 0.0421
+    max_depth: 8
+    num_leaves: 210
+    subsample: 0.8789
+    colsample_bytree: 0.8879
+    lambda_l1: 205.6999
+    lambda_l2: 580.9768
+    num_threads: 20
+    seed: 42
+    bagging_seed: 42
+    feature_fraction_seed: 42
