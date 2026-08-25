@@ -21,6 +21,14 @@ from .paths import (
     ExperimentPaths,
 )
 
+from .config_loader import (
+    load_experiment_config,
+    load_suite_configs,
+    discover_all_configs,
+    get_base_config,
+    deep_merge_dicts,
+)
+
 __all__ = [
     "AffordableTopkDropoutStrategy",
     "DayRotateStrategy",
@@ -38,5 +46,11 @@ __all__ = [
     "load_experiment_metrics",
     "list_all_experiments",
     "ExperimentPaths",
+    "load_experiment_config",
+    "load_suite_configs",
+    "discover_all_configs",
+    "get_base_config",
+    "deep_merge_dicts",
 ]
+
 

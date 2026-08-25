@@ -1,0 +1,12 @@
+key: "exp_c_label5d_roll3y"
+title: "C 组: 5日标签 + 近3年 (5日标签 + 3年窗口训练)"
+description: "训练时间窗口对照组：仅采用 2022~2024 年近 3 年历史数据训练，测试仅靠近期规律是否足以应对概念漂移与数据量不足的影响"
+
+# 覆盖参数
+label_horizon: 5
+train_start: "2022-01-01"
+train_end: "2024-12-31"
+valid_start: "2025-01-01"
+valid_end: "2025-06-30"
+test_start: "2025-07-01"
+test_end: "2026-08-24"

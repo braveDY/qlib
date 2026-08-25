@@ -1,0 +1,41 @@
+key: "exp_f_double_ensemble"
+title: "F 组: DoubleEnsemble 双重集成 (5日标签 + 17年 + DEnsembleModel)"
+description: "量化专用集成算法对照组：采用微软 DoubleEnsemble 双重自适应集成模型 (样本重加权 + 特征自适应选择)，6 个 LightGBM 子模型动态集成"
+
+# 覆盖参数
+label_horizon: 5
+train_start: "2008-01-01"
+train_end: "2024-12-31"
+valid_start: "2025-01-01"
+valid_end: "2025-06-30"
+test_start: "2025-07-01"
+test_end: "2026-08-24"
+
+model:
+  class: "DEnsembleModel"
+  module_path: "qlib.contrib.model.double_ensemble"
+  kwargs:
+    loss: "mse"                  # 目标损失函数
+    base_model: "gbm"            # 基模型: LightGBM
+    num_models: 6                # 6 个子模型集成
+    enable_sr: true              # 开启样本重加权 (Sample Reweighting)
+    enable_fs: true              # 开启特征选择 (Feature Selection)
+    alpha1: 1.0
+    alpha2: 1.0
+    decay: 0.5                   # 样本重加权衰减系数
+    bins_sr: 10
+    bins_fs: 5
+    epochs: 100
+    early_stopping_rounds: 50
+    # 以下平铺传给 LightGBM 子模型的超参 (与基线严格对齐)
+    learning_rate: 0.0421
+    max_depth: 8
+    num_leaves: 210
+    subsample: 0.8789
+    colsample_bytree: 0.8879
+    lambda_l1: 205.6999
+    lambda_l2: 580.9768
+    seed: 42
+    bagging_seed: 42
+    feature_fraction_seed: 42
+    num_threads: 20

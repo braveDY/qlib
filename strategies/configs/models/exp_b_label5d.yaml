@@ -1,0 +1,12 @@
+key: "exp_b_label5d"
+title: "B 组: 5日标签 (5日标签 + 17年训练)"
+description: "标签周期对照组：将预测目标从 1 日收益改为 5 日收益，平滑微观随机噪音，测试模型信号质量与实盘抗噪能力"
+
+# 覆盖参数
+label_horizon: 5
+train_start: "2008-01-01"
+train_end: "2024-12-31"
+valid_start: "2025-01-01"
+valid_end: "2025-06-30"
+test_start: "2025-07-01"
+test_end: "2026-08-24"

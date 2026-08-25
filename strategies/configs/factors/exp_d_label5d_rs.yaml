@@ -1,0 +1,17 @@
+key: "exp_d_label5d_rs"
+title: "D 组: 5日标签 + RS相对强度 (5日标签 + 17年 + RS特征)"
+description: "因子特征工程对照组：在 Alpha158 基础上动态追加个股相对中证500基准的 RS 相对强度动量特征 (5/10/20/60日)，挖掘逆势走强个股"
+
+# 覆盖参数
+label_horizon: 5
+rs_horizons:
+  - 5
+  - 10
+  - 20
+  - 60
+train_start: "2008-01-01"
+train_end: "2024-12-31"
+valid_start: "2025-01-01"
+valid_end: "2025-06-30"
+test_start: "2025-07-01"
+test_end: "2026-08-24"
